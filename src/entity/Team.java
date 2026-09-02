@@ -14,4 +14,7 @@ public class Team{
         army  = new ArrayList<>();
         this.name = name;
     }
+
+    public int getBudget() { return budget; }
+    public String getName() { return name; }
 }

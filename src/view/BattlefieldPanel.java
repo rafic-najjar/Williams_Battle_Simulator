@@ -1,13 +1,15 @@
 package view;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 
 import entity.Castle;
 import entity.Hill;
 import entity.TileEffect;
 import entity.Troop;
-import entity.Troop.Team;
 
 import entity.Hill;
 import entity.TileEffect;
@@ -18,9 +20,9 @@ import java.util.List;
 import java.util.Random;
 
 public class BattlefieldPanel extends JPanel {
-    private static final int rows = 8;
-    private static final int columns = 12;
-    private static final int cellSize = 50;
+    private static final int rows = 10;
+    private static final int columns = 16;
+    private static final int cellSize = 40;
 
     private static final int hillCount = 4;
     private static final int hillDamageBonus = 5;
@@ -30,16 +32,55 @@ public class BattlefieldPanel extends JPanel {
     private Castle teamBCastle;
     private Troop teamATroop;
 
+    private entity.Team teamA;
+    private entity.Team teamB;
+
     public BattlefieldPanel() {
         setBackground(new Color(235, 245, 235));
 
+        teamA = new entity.Team("Team A");
+        teamB = new entity.Team("Team B");
+
         teamACastle = new Castle(3, 0, 100);
-        teamBCastle = new Castle(3, 11, 100);
+        teamBCastle = new Castle(3, columns - 1, 100);
         tileEffects = new ArrayList<>();
         spawnHills();
 
         teamATroop = new Troop(3, 2, 100, 1, 10, Troop.Team.teamA);
-        
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                placeTroopAt(e.getX(), e.getY());
+            }
+        });
+    }
+
+    private void placeTroopAt(int mouseX, int mouseY)
+    {
+        int offsetX = getGridOffsetX();
+        int offsetY = getGridOffsetY();
+
+        int column = (mouseX - offsetX) / cellSize;
+        int row = (mouseY - offsetY) / cellSize;
+
+        if (row < 0 || row >= rows || column < 0 || column >= columns)
+        {
+            return;
+        }
+
+        teamATroop.setPosition(row, column);
+        repaint();
+    }
+
+    private int getGridOffsetX()
+    {
+        return (getWidth() - columns * cellSize) / 2;
+    }
+
+    private int getGridOffsetY()
+    {
+        return (getHeight() - rows * cellSize) / 2;
     }
 
     @Override
@@ -47,11 +88,8 @@ public class BattlefieldPanel extends JPanel {
     {
         super.paintComponent(g);
 
-        int gridWidth = columns * cellSize;
-        int gridHeight = rows * cellSize;
-
-        int offsetX = (getWidth() - gridWidth) / 2;
-        int offsetY = (getHeight() - gridHeight) / 2;
+        int offsetX = getGridOffsetX();
+        int offsetY = getGridOffsetY();
 
         g.setColor(Color.gray);
         for (int i = 0; i < rows; ++i)
@@ -72,6 +110,21 @@ public class BattlefieldPanel extends JPanel {
         drawCastle(g, teamACastle, offsetX, offsetY);
         drawCastle(g, teamBCastle, offsetX, offsetY);
         drawTroop(g, teamATroop, offsetX, offsetY);
+
+        drawTeamBudget(g, teamA, offsetX);
+        drawTeamBudget(g, teamB, getWidth() - offsetX);
+    }
+
+    private void drawTeamBudget(Graphics g, entity.Team team, int anchorX)
+    {
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("SansSerif", Font.BOLD, 14));
+
+        String label = team.getName() + ": $" + team.getBudget();
+        int textWidth = g.getFontMetrics().stringWidth(label);
+        int x = (team == teamA) ? anchorX : anchorX - textWidth;
+
+        g.drawString(label, x, 20);
     }
 
     private void drawCastle(Graphics g, Castle castle, int offsetX, int offsetY)
