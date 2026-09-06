@@ -21,6 +21,8 @@ public class Round{
         currentState.update(this); // State needs access to Round's data
     }
 
+    public void setCurrentState(GameState state) {this.currentState = state;}
+
     public Team getTeamA() { return teamA; }
     public Team getTeamB() { return teamB; }
 

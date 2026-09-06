@@ -41,7 +41,7 @@ public class BattlefieldPanel extends JPanel {
 
     private Castle teamACastle;
     private Castle teamBCastle;
-    private Troop teamATroop;
+    // Removed the Troop entity here because panel will use the Troops inside teamA and teamB
     private entity.Team teamA;
     private entity.Team teamB;
 
@@ -54,8 +54,6 @@ public class BattlefieldPanel extends JPanel {
         spawnHills();
         spawnCoins();
         spawnTraps();
-
-        teamATroop = new Troop(3, 2, 100, 1, 10, Troop.Team.teamA);
 
         // Placeholders so the sidebars have something to show. Session will
         // replace these with the real teams once it drives the panel.
@@ -96,7 +94,15 @@ public class BattlefieldPanel extends JPanel {
 
         drawCastle(g, teamACastle, offsetX, offsetY);
         drawCastle(g, teamBCastle, offsetX, offsetY);
-        drawTroop(g, teamATroop, offsetX, offsetY);
+        for (Troop troop : teamA.getArmy())
+        {
+            drawTroop(g, troop, offsetX, offsetY);
+        }
+        for (Troop troop : teamB.getArmy())
+        {
+            drawTroop(g, troop, offsetX, offsetY);
+        }
+
 
         drawSidebar(g, contentX, offsetY, gridHeight, teamA, "Team A", new Color(60, 90, 190));
         drawSidebar(g, offsetX + gridWidth + sidebarGap, offsetY, gridHeight, teamB, "Team B", new Color(190, 90, 30));
