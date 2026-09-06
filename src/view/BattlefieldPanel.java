@@ -4,10 +4,13 @@ import java.awt.Color;
 import javax.swing.JPanel;
 
 import entity.Castle;
+import entity.Coin;
 import entity.Hill;
 import entity.TileEffect;
 import entity.Troop;
+import entity.Trap;
 import entity.Troop.Team;
+import entity.InvalidPlacementException;
 
 import entity.Hill;
 import entity.TileEffect;
@@ -24,6 +27,12 @@ public class BattlefieldPanel extends JPanel {
 
     private static final int hillCount = 4;
     private static final int hillDamageBonus = 5;
+
+    private static final int coinCount = 6;
+    private static final int coinValue = 25;
+
+    private static final int trapCount = 4;
+    private static final int trapDamage = 20;
     private List<TileEffect> tileEffects;
 
     private Castle teamACastle;
@@ -37,6 +46,8 @@ public class BattlefieldPanel extends JPanel {
         teamBCastle = new Castle(3, 11, 100);
         tileEffects = new ArrayList<>();
         spawnHills();
+        spawnCoins();
+        spawnTraps();
 
         teamATroop = new Troop(3, 2, 100, 1, 10, Troop.Team.teamA);
         
@@ -102,6 +113,85 @@ public class BattlefieldPanel extends JPanel {
         }
     }
 
+    private void spawnCoins()
+    {
+        Random random = new Random();
+        int placed = 0;
+
+        while (placed < coinCount)
+        {
+            int row = random.nextInt(rows);
+            int column = random.nextInt(columns);
+
+            if (tryAddEffect(new Coin(row, column, coinValue)))
+            {
+                ++placed;
+            }
+        }
+    }
+
+    // Traps spawn at random for now. A trap belongs to whichever team owns the
+    // half it lands on, which is the same rule a placement stage will enforce,
+    // so only the choice of cell has to change later.
+    private void spawnTraps()
+    {
+        Random random = new Random();
+        int placed = 0;
+
+        while (placed < trapCount)
+        {
+            int row = random.nextInt(rows);
+            int column = random.nextInt(columns);
+
+            if (tryAddEffect(new Trap(row, column, trapDamage, ownerOfHalf(column))))
+            {
+                ++placed;
+            }
+        }
+    }
+
+   private Troop.Team ownerOfHalf(int column)
+    {
+        return (column < columns / 2) ? Troop.Team.teamA : Troop.Team.teamB;
+    }
+
+    // The single way anything gets onto the board. Random spawning uses it now;
+    // PlaceState will use it later when the player picks the cell.
+    public void addEffect(TileEffect effect) throws InvalidPlacementException
+    {
+        int row = effect.getRow();
+        int column = effect.getColumn();
+
+        if (row < 0 || row >= rows || column < 0 || column >= columns)
+        {
+            throw new InvalidPlacementException(
+                "Cell " + row + "," + column + " is outside the battlefield.");
+        }
+
+        if (!isCellFree(row, column))
+        {
+            throw new InvalidPlacementException(
+                "Cell " + row + "," + column + " is already taken.");
+        }
+
+        tileEffects.add(effect);
+    }
+
+    // Random spawning expects most cells to be taken, so a rejection here is
+    // normal rather than an error worth reporting.
+    private boolean tryAddEffect(TileEffect effect)
+    {
+        try
+        {
+            addEffect(effect);
+            return true;
+        }
+        catch (InvalidPlacementException e)
+        {
+            return false;
+        }
+    }
+
     private boolean isCellFree(int row, int column)
     {
         if (isSameCell(teamACastle.getRow(), teamACastle.getColumn(), row, column)
@@ -137,6 +227,18 @@ public class BattlefieldPanel extends JPanel {
             int[] xs = { x + 6, x + cellSize / 2, x + cellSize - 6 };
             int[] ys = { y + cellSize - 8, y + 8, y + cellSize - 8 };
             g.fillPolygon(xs, ys, 3);
+        }
+        else if (effect instanceof Coin)
+        {
+            int inset = cellSize / 3;
+            g.setColor(new Color(214, 174, 54));
+            g.fillOval(x + inset, y + inset, cellSize - 2 * inset, cellSize - 2 * inset);
+        }
+        else if (effect instanceof Trap)
+        {
+            int inset = cellSize / 4;
+            g.setColor(new Color(150, 40, 40));
+            g.fillRect(x + inset, y + inset, cellSize - 2 * inset, cellSize - 2 * inset);
         }
     }
 

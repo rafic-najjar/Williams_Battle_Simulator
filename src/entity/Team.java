@@ -18,5 +18,16 @@ public class Team{
         return army;
     }
 
+    public int getBudget() {
+        return budget;
+     }
+
+    public String getName() {
+         return name; 
+    }
+
+    // Used when a troop collects gold from the battlefield.
+    public void addBudget(int amount) { budget += amount; }
+
     private static final int INITIAL_BUDGET = 400;
 }
