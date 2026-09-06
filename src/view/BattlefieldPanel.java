@@ -2,6 +2,7 @@ package view;
 
 import java.awt.Color;
 import javax.swing.JPanel;
+import javax.swing.ImageIcon;
 import java.awt.Font;
 import java.awt.FontMetrics;
 
@@ -15,6 +16,7 @@ import entity.Troop.Team;
 import entity.InvalidPlacementException;
 
 import java.awt.Graphics;
+import java.awt.Image;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -45,8 +47,22 @@ public class BattlefieldPanel extends JPanel {
     private entity.Team teamA;
     private entity.Team teamB;
 
+    private Image troopASprite;
+    private Image troopBSprite;
+    private Image castleSprite;
+    private Image coinSprite;
+    private Image hillSprite;
+    private Image trapSprite;
+
     public BattlefieldPanel() {
         setBackground(new Color(235, 245, 235));
+
+        troopASprite = new ImageIcon("assets/Troop_A_Sprite.png").getImage();
+        troopBSprite = new ImageIcon("assets/Troop_B_Sprite.png").getImage();
+        castleSprite = new ImageIcon("assets/Castle_Sprite.png").getImage();
+        coinSprite = new ImageIcon("assets/Coin_Sprite.png").getImage();
+        hillSprite = new ImageIcon("assets/Hill_Sprite.png").getImage();
+        trapSprite = new ImageIcon("assets/Trap_Sprite.png").getImage();
 
         teamACastle = new Castle(3, 0, 100);
         teamBCastle = new Castle(3, 11, 100);
@@ -88,6 +104,7 @@ public class BattlefieldPanel extends JPanel {
                 g.drawRect(x, y, cellSize, cellSize);
             }
         }
+
                 // effects draw first so troops and stuff stay on top of them.
         for (TileEffect effect : tileEffects)
         {
@@ -107,8 +124,14 @@ public class BattlefieldPanel extends JPanel {
         int x = castle.getColumn() * cellSize + offsetX;
         int y = castle.getRow() * cellSize + offsetY;
 
-        g.setColor(Color.DARK_GRAY);
-        g.fillRect(x, y, cellSize, cellSize);
+        g.drawImage(
+            castleSprite,
+            x - 5,
+            y - 5,
+            cellSize + 10,
+            cellSize + 10,
+            this
+        );
     }
 
         // hills spawn at random empty cells at the start of the round rather than
@@ -240,22 +263,36 @@ public class BattlefieldPanel extends JPanel {
 
         if (effect instanceof Hill)
         {
-            g.setColor(new Color(120, 155, 95));
-            int[] xs = { x + 6, x + cellSize / 2, x + cellSize - 6 };
-            int[] ys = { y + cellSize - 8, y + 8, y + cellSize - 8 };
-            g.fillPolygon(xs, ys, 3);
+            g.drawImage(
+                hillSprite,
+                x - 4,
+                y + 2,
+                cellSize + 8,
+                cellSize - 4,
+                this
+            );
         }
         else if (effect instanceof Coin)
         {
-            int inset = cellSize / 3;
-            g.setColor(new Color(214, 174, 54));
-            g.fillOval(x + inset, y + inset, cellSize - 2 * inset, cellSize - 2 * inset);
+            g.drawImage(
+                coinSprite,
+                x + 8,
+                y + 8,
+                cellSize - 16,
+                cellSize - 16,
+                this
+            );
         }
         else if (effect instanceof Trap)
         {
-            int inset = cellSize / 4;
-            g.setColor(new Color(150, 40, 40));
-            g.fillRect(x + inset, y + inset, cellSize - 2 * inset, cellSize - 2 * inset);
+            g.drawImage(
+                trapSprite,
+                x + 5,
+                y + 5,
+                cellSize - 10,
+                cellSize - 10,
+                this
+            );
         }
     }
 
@@ -264,8 +301,25 @@ public class BattlefieldPanel extends JPanel {
         int x = troop.getColumn() * cellSize + offsetX;
         int y = troop.getRow() * cellSize + offsetY;
 
-        g.setColor(Color.BLUE);
-        g.fillOval(x, y, cellSize, cellSize);
+        Image sprite;
+
+        if (troop.getTeam() == Troop.Team.teamA)
+        {
+            sprite = troopASprite;
+        }
+        else
+        {
+            sprite = troopBSprite;
+        }
+
+        g.drawImage(
+            sprite,
+            x - 12,
+            y - 12,
+            cellSize + 24,
+            cellSize + 24,
+            this
+        );
     }
 
     
