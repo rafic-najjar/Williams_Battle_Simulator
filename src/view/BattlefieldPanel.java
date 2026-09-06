@@ -2,6 +2,8 @@ package view;
 
 import java.awt.Color;
 import javax.swing.JPanel;
+import java.awt.Font;
+import java.awt.FontMetrics;
 
 import entity.Castle;
 import entity.Coin;
@@ -11,9 +13,6 @@ import entity.Troop;
 import entity.Trap;
 import entity.Troop.Team;
 import entity.InvalidPlacementException;
-
-import entity.Hill;
-import entity.TileEffect;
 
 import java.awt.Graphics;
 import java.util.ArrayList;
@@ -33,11 +32,18 @@ public class BattlefieldPanel extends JPanel {
 
     private static final int trapCount = 4;
     private static final int trapDamage = 20;
+    
+    private static final int sidebarWidth = 120;
+    private static final int sidebarGap = 16;
+    private static final int sidebarPadding = 12;
+
     private List<TileEffect> tileEffects;
 
     private Castle teamACastle;
     private Castle teamBCastle;
     private Troop teamATroop;
+    private entity.Team teamA;
+    private entity.Team teamB;
 
     public BattlefieldPanel() {
         setBackground(new Color(235, 245, 235));
@@ -50,6 +56,11 @@ public class BattlefieldPanel extends JPanel {
         spawnTraps();
 
         teamATroop = new Troop(3, 2, 100, 1, 10, Troop.Team.teamA);
+
+        // Placeholders so the sidebars have something to show. Session will
+        // replace these with the real teams once it drives the panel.
+        teamA = new entity.Team("Team A");
+        teamB = new entity.Team("Team B");
         
     }
 
@@ -61,7 +72,10 @@ public class BattlefieldPanel extends JPanel {
         int gridWidth = columns * cellSize;
         int gridHeight = rows * cellSize;
 
-        int offsetX = (getWidth() - gridWidth) / 2;
+       int contentWidth = gridWidth + 2 * (sidebarWidth + sidebarGap);
+        int contentX = (getWidth() - contentWidth) / 2;
+        int offsetX = contentX + sidebarWidth + sidebarGap;
+
         int offsetY = (getHeight() - gridHeight) / 2;
 
         g.setColor(Color.gray);
@@ -83,6 +97,9 @@ public class BattlefieldPanel extends JPanel {
         drawCastle(g, teamACastle, offsetX, offsetY);
         drawCastle(g, teamBCastle, offsetX, offsetY);
         drawTroop(g, teamATroop, offsetX, offsetY);
+
+        drawSidebar(g, contentX, offsetY, gridHeight, teamA, "Team A", new Color(60, 90, 190));
+        drawSidebar(g, offsetX + gridWidth + sidebarGap, offsetY, gridHeight, teamB, "Team B", new Color(190, 90, 30));
     }
 
     private void drawCastle(Graphics g, Castle castle, int offsetX, int offsetY)
@@ -250,4 +267,60 @@ public class BattlefieldPanel extends JPanel {
         g.setColor(Color.BLUE);
         g.fillOval(x, y, cellSize, cellSize);
     }
+
+    
+    // One teams column. The header and budget sit at the top and
+    // the rest is left empty on purpose, for the stuff later on 
+    private void drawSidebar(Graphics g, int x, int y, int height,
+                             entity.Team team, String title, Color accent)
+    {
+        g.setColor(new Color(250, 252, 250));
+        g.fillRect(x, y, sidebarWidth, height);
+
+        g.setColor(new Color(200, 210, 200));
+        g.drawRect(x, y, sidebarWidth, height);
+
+        int headerHeight = 34;
+        g.setColor(accent);
+        g.fillRect(x, y, sidebarWidth, headerHeight);
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("SansSerif", Font.BOLD, 15));
+        drawCentred(g, title, x, y + 22);
+
+        int budgetY = y + headerHeight + 30;
+
+        g.setColor(new Color(120, 125, 120));
+        g.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        drawCentred(g, "BUDGET", x, budgetY);
+
+        g.setColor(new Color(50, 55, 50));
+        g.setFont(new Font("SansSerif", Font.BOLD, 22));
+        drawCentred(g, "$" + budgetOf(team), x, budgetY + 28);
+
+        // Divider marking where future rows will start.
+        g.setColor(new Color(225, 230, 225));
+        g.drawLine(x + sidebarPadding, budgetY + 48,
+                   x + sidebarWidth - sidebarPadding, budgetY + 48);
+    }
+
+    private int budgetOf(entity.Team team)
+    {
+        return (team == null) ? 0 : team.getBudget();
+    }
+
+    private void drawCentred(Graphics g, String text, int x, int baselineY)
+    {
+        FontMetrics metrics = g.getFontMetrics();
+        int textX = x + (sidebarWidth - metrics.stringWidth(text)) / 2;
+        g.drawString(text, textX, baselineY);
+    }
+
+    // Lets Session hand the panel the real teams once it is wired up.
+    public void setTeams(entity.Team teamA, entity.Team teamB)
+    {
+        this.teamA = teamA;
+        this.teamB = teamB;
+    }
+
 }
