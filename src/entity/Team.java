@@ -29,5 +29,7 @@ public class Team{
     // Used when a troop collects gold from the battlefield.
     public void addBudget(int amount) { budget += amount; }
 
-    private static final int INITIAL_BUDGET = 400;
+    public void addTroop(Troop troop) {army.add(troop);}
+
+    private static final int INITIAL_BUDGET = 500;
 }
