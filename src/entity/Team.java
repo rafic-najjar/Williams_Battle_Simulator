@@ -2,7 +2,6 @@ package entity;
 import java.util.ArrayList;
 
 public class Team{
-    private static final int INITIAL_BUDGET = 400;
 
     int budget, winCount;
     String name;
@@ -15,6 +14,20 @@ public class Team{
         this.name = name;
     }
 
-    public int getBudget() { return budget; }
-    public String getName() { return name; }
+    public ArrayList<Troop> getArmy() {
+        return army;
+    }
+
+    public int getBudget() {
+        return budget;
+     }
+
+    public String getName() {
+         return name;
+    }
+
+    // Used when a troop collects gold from the battlefield.
+    public void addBudget(int amount) { budget += amount; }
+
+    private static final int INITIAL_BUDGET = 400;
 }
