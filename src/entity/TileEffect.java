@@ -1,5 +1,4 @@
 package entity;
-
 public abstract class TileEffect {
     public TileEffect(int row, int column, Troop.Team owner)
     {
