@@ -97,7 +97,14 @@ public class BattlefieldPanel extends JPanel {
             return;
         }
 
-        teamATroop.setPosition(row, column);
+        if (teamA.getArmy().isEmpty())
+        {
+            return;
+        }
+
+        // Placeholder placement logic: moves the first troop in Team A's
+        // army. Not tied to a selection UI yet.
+        teamA.getArmy().get(0).setPosition(row, column);
         repaint();
     }
 
