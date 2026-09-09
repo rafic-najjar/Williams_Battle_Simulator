@@ -23,7 +23,7 @@ public class Team{
      }
 
     public String getName() {
-         return name; 
+         return name;
     }
 
     // Used when a troop collects gold from the battlefield.

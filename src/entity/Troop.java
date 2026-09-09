@@ -23,6 +23,12 @@ public class Troop {
     public int getTroopSize() {return m_troopSize;}
     public Team getTeam() {return m_team;}
 
+    public void setPosition(int row, int column)
+    {
+        m_row = row;
+        m_column = column;
+    }
+
     public void move()
     {
         if (m_team == Team.teamA)

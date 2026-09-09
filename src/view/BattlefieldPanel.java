@@ -1,30 +1,30 @@
 package view;
 
 import java.awt.Color;
-import javax.swing.JPanel;
-import javax.swing.ImageIcon;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 
 import entity.Castle;
 import entity.Coin;
 import entity.Hill;
-import entity.TileEffect;
-import entity.Troop;
-import entity.Trap;
-import entity.Troop.Team;
 import entity.InvalidPlacementException;
-
-import java.awt.Graphics;
-import java.awt.Image;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import entity.TileEffect;
+import entity.Trap;
+import entity.Troop;
 
 public class BattlefieldPanel extends JPanel {
-    private static final int rows = 8;
-    private static final int columns = 12;
-    private static final int cellSize = 50;
+    private static final int rows = 10;
+    private static final int columns = 16;
+    private static final int cellSize = 35;
 
     private static final int hillCount = 4;
     private static final int hillDamageBonus = 5;
@@ -34,7 +34,7 @@ public class BattlefieldPanel extends JPanel {
 
     private static final int trapCount = 4;
     private static final int trapDamage = 20;
-    
+
     private static final int sidebarWidth = 120;
     private static final int sidebarGap = 16;
     private static final int sidebarPadding = 12;
@@ -65,7 +65,7 @@ public class BattlefieldPanel extends JPanel {
         trapSprite = new ImageIcon("assets/Trap_Sprite.png").getImage();
 
         teamACastle = new Castle(3, 0, 100);
-        teamBCastle = new Castle(3, 11, 100);
+        teamBCastle = new Castle(3, columns - 1, 100);
         tileEffects = new ArrayList<>();
         spawnHills();
         spawnCoins();
@@ -75,7 +75,51 @@ public class BattlefieldPanel extends JPanel {
         // replace these with the real teams once it drives the panel.
         teamA = new entity.Team("Team A");
         teamB = new entity.Team("Team B");
-        
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                placeTroopAt(e.getX(), e.getY());
+            }
+        });
+    }
+
+    private void placeTroopAt(int mouseX, int mouseY)
+    {
+        int offsetX = getGridOffsetX();
+        int offsetY = getGridOffsetY();
+
+        int column = (mouseX - offsetX) / cellSize;
+        int row = (mouseY - offsetY) / cellSize;
+
+        if (row < 0 || row >= rows || column < 0 || column >= columns)
+        {
+            return;
+        }
+
+        if (teamA.getArmy().isEmpty())
+        {
+            return;
+        }
+
+        // Placeholder placement logic: moves the first troop in Team A's
+        // army. Not tied to a selection UI yet.
+        teamA.getArmy().get(0).setPosition(row, column);
+        repaint();
+    }
+
+    private int getGridOffsetX()
+    {
+        int gridWidth = columns * cellSize;
+        int contentWidth = gridWidth + 2 * (sidebarWidth + sidebarGap);
+        int contentX = (getWidth() - contentWidth) / 2;
+        return contentX + sidebarWidth + sidebarGap;
+    }
+
+    private int getGridOffsetY()
+    {
+        int gridHeight = rows * cellSize;
+        return (getHeight() - gridHeight) / 2;
     }
 
     @Override
@@ -86,11 +130,9 @@ public class BattlefieldPanel extends JPanel {
         int gridWidth = columns * cellSize;
         int gridHeight = rows * cellSize;
 
-       int contentWidth = gridWidth + 2 * (sidebarWidth + sidebarGap);
-        int contentX = (getWidth() - contentWidth) / 2;
-        int offsetX = contentX + sidebarWidth + sidebarGap;
-
-        int offsetY = (getHeight() - gridHeight) / 2;
+        int offsetX = getGridOffsetX();
+        int offsetY = getGridOffsetY();
+        int contentX = offsetX - sidebarWidth - sidebarGap;
 
         g.setColor(Color.gray);
         for (int i = 0; i < rows; ++i)
@@ -103,7 +145,7 @@ public class BattlefieldPanel extends JPanel {
             }
         }
 
-                // effects draw first so troops and stuff stay on top of them.
+        // effects draw first so troops and stuff stay on top of them.
         for (TileEffect effect : tileEffects)
         {
             drawTileEffect(g, effect, offsetX, offsetY);
@@ -140,7 +182,7 @@ public class BattlefieldPanel extends JPanel {
         );
     }
 
-        // hills spawn at random empty cells at the start of the round rather than
+    // hills spawn at random empty cells at the start of the round rather than
     private void spawnHills()
     {
         Random random = new Random();
@@ -328,9 +370,9 @@ public class BattlefieldPanel extends JPanel {
         );
     }
 
-    
+
     // One teams column. The header and budget sit at the top and
-    // the rest is left empty on purpose, for the stuff later on 
+    // the rest is left empty on purpose, for the stuff later on
     private void drawSidebar(Graphics g, int x, int y, int height,
                              entity.Team team, String title, Color accent)
     {
