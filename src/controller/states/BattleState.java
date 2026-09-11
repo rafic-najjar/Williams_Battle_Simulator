@@ -2,7 +2,6 @@ package controller.states;
 
 import controller.Round;
 import entity.troops.Troop;
-import java.awt.Graphics;
 
 public class BattleState implements GameState {
 
@@ -18,7 +17,7 @@ public class BattleState implements GameState {
     }
 
     @Override
-    public void render(Round round, Graphics g) {
+    public void render(Round round) {
         // no rendering yet since BattlefieldPanel currently handles all drawing.
     }
 }

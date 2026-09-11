@@ -1,18 +1,17 @@
 package controller.states;
 
 import controller.Round;
-import java.awt.Graphics;
 
-public class PlaceState implements GameState{
+public class PlaceState implements GameState {
     @Override
-    public void update(Round round)
-    {
-        // Handle troop placement which is currently implemented in BattlefieldPanel
+    public void update(Round round) {
+        // TEMPORARY: skips straight to battle.
+        // Real placement will wait for player input before handing over.
+        round.setCurrentState(new BattleState());
     }
 
     @Override
-    public void render(Round round, Graphics g)
-    {
+    public void render(Round round) {
         // draw placement-phase UI
     }
 }

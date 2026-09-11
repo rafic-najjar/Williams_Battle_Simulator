@@ -1,19 +1,18 @@
 package controller.states;
 
 import controller.Round;
-import java.awt.Graphics;
 
-public class AllocateState implements GameState{
+public class AllocateState implements GameState {
 
     @Override
-    public void update(Round round)
-    {
-        // Allocate troops and budget
+    public void update(Round round) {
+        round.spawnTileEffects();
+        round.setCurrentState(new PlaceState());
     }
 
     @Override
-    public void render(Round round, Graphics g)
-    {
+    public void render(Round round) {
         // I don't think this state needs to render anything
+
     }
 }

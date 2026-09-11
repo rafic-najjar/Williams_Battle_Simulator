@@ -8,20 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/*
+What Round is now responsible for?
+- Holding the board: castles, tile effects, grid size
+- Holding the two teams for this battle
+- Knowing which state is active and passing itself to it
+- Not deciding what happens in each phase — that's the states
+*/
 public class Round {
-    /* ---- PRIVATE VARIABLES ---- */
-    private final Team teamA;
-    private final Team teamB;
-    private final Castle teamACastle;
-    private final Castle teamBCastle;
-    private final List<TileEffect> tileEffects;
-    private GameState currentState;
-    private final Random random = new Random();
 
     /* ---- STATIC VARIABLES ---- */
+
     /* VARIABLES FOR GRID */
     private static final int ROW_COUNT = 10;
     private static final int COLUMN_COUNT = 16;
+
     /* VARIABLES FOR TILE EFFECT */
     private static final int HILL_COUNT = 4;
     private static final int HILL_DAMAGE_BONUS = 5;
@@ -30,35 +31,52 @@ public class Round {
     private static final int TRAP_COUNT = 4;
     private static final int TRAP_DAMAGE = 20;
 
+    /* ---- PRIVATE VARIABLES ---- */
+    private final Team teamA;
+    private final Team teamB;
+    private final Castle teamACastle;
+    private final Castle teamBCastle;
+    private final List<TileEffect> tileEffects;
+    private final Random random = new Random();
+    private GameState currentState;
+
+    /* ---- CONSTRUCTORS ---- */
     public Round(Team teamA, Team teamB) {
         this.teamA = teamA;
         this.teamB = teamB;
         tileEffects = new ArrayList<>();
         teamACastle = new Castle(3, 0, 100);
         teamBCastle = new Castle(3, COLUMN_COUNT - 1, 100);
-
     }
 
+    /* ---- PUBLIC METHODS ---- */
     public void start() {
-        spawnTitleEffects();
-        currentState = new BattleState(); // Temporily set to battle state
+        setCurrentState(new AllocateState());
     }
 
     public void update() {
         currentState.update(this); // State needs access to Round's data
     }
 
-    public void setCurrentState(GameState state) {
-        this.currentState = state;
+    public void render() {
+        currentState.render(this);
     }
 
-    private void spawnTitleEffects() {
+    /*
+     * Spawn all the tile effect that have been created
+     */
+    public void spawnTileEffects() {
+        tileEffects.clear(); // removes all the tile effects from previous round
         spawnHills();
         spawnCoins();
         spawnTraps();
     }
 
-    // hills spawn at random empty cells at the start of the round rather than
+    /*---- PRIVATE METHODS ---- */
+
+    /*
+     * hills spawn at random empty cells at the start of the round
+     */
     private void spawnHills() {
         int placed = 0;
 
@@ -66,8 +84,7 @@ public class Round {
             int row = random.nextInt(ROW_COUNT);
             int column = random.nextInt(COLUMN_COUNT);
 
-            if (isCellFree(row, column)) {
-                tileEffects.add(new Hill(row, column, HILL_DAMAGE_BONUS));
+            if (tryAddTileEffect(new Hill(row, column, HILL_DAMAGE_BONUS))) {
                 ++placed;
             }
         }
@@ -80,15 +97,17 @@ public class Round {
             int row = random.nextInt(ROW_COUNT);
             int column = random.nextInt(COLUMN_COUNT);
 
-            if (tryAddEffect(new Coin(row, column, COIN_VALUE))) {
+            if (tryAddTileEffect(new Coin(row, column, COIN_VALUE))) {
                 ++placed;
             }
         }
     }
 
-    // Traps spawn at random for now. A trap belongs to whichever team owns the
-    // half it lands on, which is the same rule a placement stage will enforce,
-    // so only the choice of cell has to change later.
+    /*
+     * Traps spawn at random for now. A trap belongs to whichever team owns the half
+     * it lands on, which is the same rule a placement stage will enforce, so only
+     * the choice of cell has to change later.
+     */
     private void spawnTraps() {
         int placed = 0;
 
@@ -96,15 +115,30 @@ public class Round {
             int row = random.nextInt(ROW_COUNT);
             int column = random.nextInt(COLUMN_COUNT);
 
-            if (tryAddEffect(new Trap(row, column, TRAP_DAMAGE, ownerOfHalf(column)))) {
+            if (tryAddTileEffect(new Trap(row, column, TRAP_DAMAGE, ownerOfHalf(column)))) {
                 ++placed;
             }
         }
     }
 
-    // The single way anything gets onto the board. Random spawning uses it now;
-    // PlaceState will use it later when the player picks the cell.
-    public void addEffect(TileEffect effect) throws InvalidPlacementException {
+    /*
+     * Random spawning expects most cells to be taken, so a rejection here is
+     * normal rather than an error worth reporting.
+     */
+    private boolean tryAddTileEffect(TileEffect effect) {
+        try {
+            addTileEffect(effect);
+            return true;
+        } catch (InvalidPlacementException e) {
+            return false;
+        }
+    }
+
+    /*
+     * The single way anything gets onto the board. Random spawning uses it now;
+     * PlaceState will use it later when the player picks the cell.
+     */
+    private void addTileEffect(TileEffect effect) throws InvalidPlacementException {
         int row = effect.getRow();
         int column = effect.getColumn();
 
@@ -119,17 +153,6 @@ public class Round {
         }
 
         tileEffects.add(effect);
-    }
-
-    // Random spawning expects most cells to be taken, so a rejection here is
-    // normal rather than an error worth reporting.
-    private boolean tryAddEffect(TileEffect effect) {
-        try {
-            addEffect(effect);
-            return true;
-        } catch (InvalidPlacementException e) {
-            return false;
-        }
     }
 
     private Troop.Team ownerOfHalf(int column) {
@@ -180,11 +203,18 @@ public class Round {
         return currentState;
     }
 
-    public static int getRowCount() {
+    public int getRowCount() {
         return ROW_COUNT;
     }
 
-    public static int getColumnCount() {
+    public int getColumnCount() {
         return COLUMN_COUNT;
     }
+
+    /* ---- SETTER METHODS ---- */
+    public void setCurrentState(GameState state) {
+        this.currentState = state;
+
+    }
+
 }
