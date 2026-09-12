@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -54,6 +55,11 @@ public class BattlefieldPanel extends JPanel {
     private Image hillSprite;
     private Image trapSprite;
 
+    // Cell currently under the mouse, so paintComponent can highlight it.
+    // -1 means the mouse isn't over a valid cell.
+    private int hoverRow = -1;
+    private int hoverColumn = -1;
+
     public BattlefieldPanel() {
         setBackground(new Color(235, 245, 235));
 
@@ -81,31 +87,78 @@ public class BattlefieldPanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 placeTroopAt(e.getX(), e.getY());
             }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                clearHover();
+            }
         });
+
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                hoverRow = rowFor(e.getY());
+                hoverColumn = columnFor(e.getX());
+                repaint();
+            }
+        });
+    }
+
+    private void clearHover()
+    {
+        hoverRow = -1;
+        hoverColumn = -1;
+        repaint();
     }
 
     private void placeTroopAt(int mouseX, int mouseY)
     {
-        int offsetX = getGridOffsetX();
-        int offsetY = getGridOffsetY();
-
-        int column = (mouseX - offsetX) / cellSize;
-        int row = (mouseY - offsetY) / cellSize;
-
-        if (row < 0 || row >= rows || column < 0 || column >= columns)
+        try
         {
-            return;
+            // Placeholder placement logic: moves the first troop in Team
+            // A's army. Not tied to a selection UI yet.
+            moveFirstTroop(rowFor(mouseY), columnFor(mouseX));
+            repaint();
+        }
+        catch (InvalidPlacementException e)
+        {
+            // Click missed the grid, or Team A has no troop to place yet
+            // (Session hasn't wired up real teams). Nothing to do.
+        }
+    }
+
+    private void moveFirstTroop(int row, int column) throws InvalidPlacementException
+    {
+        if (!isWithinGrid(row, column))
+        {
+            throw new InvalidPlacementException(
+                "Cell " + row + "," + column + " is outside the battlefield.");
         }
 
         if (teamA.getArmy().isEmpty())
         {
-            return;
+            throw new InvalidPlacementException("Team A has no troop to place yet.");
         }
 
-        // Placeholder placement logic: moves the first troop in Team A's
-        // army. Not tied to a selection UI yet.
         teamA.getArmy().get(0).setPosition(row, column);
-        repaint();
+    }
+
+    // Converts a mouse position into the grid cell underneath it. Shared by
+    // the click handler and the hover highlight so both always agree on
+    // which cell the cursor is over.
+    private int columnFor(int mouseX)
+    {
+        return (mouseX - getGridOffsetX()) / cellSize;
+    }
+
+    private int rowFor(int mouseY)
+    {
+        return (mouseY - getGridOffsetY()) / cellSize;
+    }
+
+    private boolean isWithinGrid(int row, int column)
+    {
+        return row >= 0 && row < rows && column >= 0 && column < columns;
     }
 
     private int getGridOffsetX()
@@ -143,6 +196,13 @@ public class BattlefieldPanel extends JPanel {
                 int y = i * cellSize + offsetY;
                 g.drawRect(x, y, cellSize, cellSize);
             }
+        }
+
+        if (isWithinGrid(hoverRow, hoverColumn))
+        {
+            g.setColor(new Color(255, 255, 150, 110));
+            g.fillRect(hoverColumn * cellSize + offsetX, hoverRow * cellSize + offsetY,
+                       cellSize, cellSize);
         }
 
         // effects draw first so troops and stuff stay on top of them.

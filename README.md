@@ -17,4 +17,5 @@ java App
 
 - Battlefield grid: 10x16 tiles.
 - Each team's `$` budget is displayed on the battlefield.
-- Click-to-place: clicking a tile moves a troop there.
+- Click-to-place: clicking a tile moves a troop there, with a hover
+  highlight on the tile under the cursor before you click.

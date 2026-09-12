@@ -23,6 +23,9 @@ public class Troop {
     public int getTroopSize() {return m_troopSize;}
     public Team getTeam() {return m_team;}
 
+    // Jumps straight to a cell, unlike move() below which advances by
+    // m_speed each tick. Used for direct placement (e.g. click-to-place)
+    // rather than the automatic per-tick advance during battle.
     public void setPosition(int row, int column)
     {
         m_row = row;
