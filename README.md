@@ -8,10 +8,12 @@ libraries.
 ## Running
 
 ```
-cd src
-javac App.java controller/*.java controller/states/*.java entity/*.java view/*.java
-java App
+javac -d bin src/App.java src/controller/*.java src/controller/states/*.java src/entity/*.java src/view/*.java
+java -cp bin App
 ```
+
+Run from the project root, not `src/` — sprite paths (`assets/...`) are relative to
+the working directory, so running from `src/` leaves them blank.
 
 ## Notes
 
